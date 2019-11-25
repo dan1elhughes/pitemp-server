@@ -1,0 +1,12 @@
+[Unit]
+Description=Pitemp
+After=network.target
+
+[Service]
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /home/pi/pitemp/dht.py
+Restart=on-failure
+Type=notify
+
+[Install]
+WantedBy=default.target
