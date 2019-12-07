@@ -1,10 +1,12 @@
 [Unit]
-Description=Pitemp
+Description={{ app }}
 After=network.target
 
 [Service]
 Environment=PYTHONUNBUFFERED=1
-ExecStart=/usr/bin/python3 /home/pi/pitemp/dht.py
+Environment=INFLUX_SERVER_IP={{ server_ip }}
+
+ExecStart=/usr/bin/python3 /home/pi/apps/{{ app }}/main.py
 Restart=on-failure
 Type=notify
 

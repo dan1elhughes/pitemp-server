@@ -1,0 +1,53 @@
+---
+- hosts: runs_temperature
+  gather_facts: no
+  remote_user: pi
+  vars:
+    server_ip: "192.168.1.128"
+    app: "pitemp"
+
+  tasks:
+    - name: Create app directory
+      file:
+        path: "/home/pi/apps/{{ app }}"
+        state: directory
+
+    - name: Copy app
+      copy:
+        dest: "/home/pi/apps/{{ app }}/main.py"
+        src: "./main.py"
+
+    - name: Create systemd unit directory
+      file:
+        path: "/home/pi/.config/systemd/user"
+        state: directory
+
+    - name: Create systemd unit file
+      template:
+        src: "../templates/systemd.service"
+        dest: "/home/pi/.config/systemd/user/{{ app }}.service"
+
+    - name: Run service
+      systemd:
+        state: started
+        scope: user
+        name: "{{ app }}"
+
+    - name: Enable service
+      systemd:
+        enabled: yes
+        scope: user
+        name: "{{ app }}"
+
+    - name: Enable systemd user lingering
+      become: yes
+      notify:
+        - reboot
+      copy:
+        content: ""
+        dest: "/var/lib/systemd/linger/pi"
+
+  handlers:
+    - name: reboot
+      become: yes
+      reboot:
