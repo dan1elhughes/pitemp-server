@@ -17,7 +17,7 @@
         - restart app
       copy:
         src: "./src/"
-        dest: "/home/pi/apps/{{ app }}/ "
+        dest: "/home/pi/apps/{{ app }}/"
 
     - name: Create systemd unit directory
       file:
