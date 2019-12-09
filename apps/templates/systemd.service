@@ -4,7 +4,8 @@ After=network.target
 
 [Service]
 Environment=PYTHONUNBUFFERED=1
-Environment=INFLUX_SERVER_IP={{ server_ip }}
+Environment="INFLUX_SERVER_IP={{ server_ip }}"
+Environment="LOCATION={{ location }}"
 
 ExecStart=/usr/bin/python3 /home/pi/apps/{{ app }}/main.py
 Restart=on-failure

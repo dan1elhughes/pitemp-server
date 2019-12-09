@@ -7,11 +7,15 @@ import psutil
 import systemd.daemon
 from influxdb import InfluxDBClient
 
-serverIp = os.environ.get('INFLUX_SERVER_IP')
+serverIp = os.environ.get('INFLUX_SERVER_IP', '192.168.1.128')
+print("Env: serverIp ", serverIp)
 serverPort = os.environ.get('INFLUX_SERVER_PORT', 8086)
+print("Env: serverPort ", serverPort)
 serverDatabase = os.environ.get('INFLUX_SERVER_DATABASE', 'external')
+print("Env: serverDatabase ", serverDatabase)
 
-client = InfluxDBClient(host=serverIp, port=8086)
+client = InfluxDBClient(host=serverIp, port=serverPort,
+                        database=serverDatabase)
 
 hostname = socket.gethostname()
 
@@ -23,24 +27,29 @@ def seconds_since_boot():
 
 
 while True:
-    data = []
-
+    metrics = {}
     try:
+        metrics['measurement'] = "system"
+
+        tags = {}
+        tags['hostname'] = hostname
+        metrics['tags'] = tags
+
         memStats = psutil.virtual_memory()
-        data.append("{measurement},hostname={hostname} temperature={temp},cpu={cpu},mem_available={mem_available},mem_total={mem_total},mem_used={mem_used},mem_percent={mem_percent},uptime={uptime}".format(
-            measurement="pisystem",
-            hostname=socket.gethostname(),
-            temp=psutil.sensors_temperatures()['cpu-thermal'][0].current,
-            cpu=psutil.cpu_percent(),
-            mem_available=memStats.available,
-            mem_total=memStats.total,
-            mem_used=memStats.used,
-            mem_percent=memStats.percent,
-            uptime=seconds_since_boot()))
+        fields = {}
+        fields['temp'] = psutil.sensors_temperatures()[
+            'cpu-thermal'][0].current
+        fields['cpu'] = psutil.cpu_percent()
+        fields['mem_available'] = memStats.available
+        fields['mem_total'] = memStats.total
+        fields['mem_used'] = memStats.used
+        fields['mem_percent'] = memStats.percent
+        fields['uptime'] = seconds_since_boot()
+        metrics['fields'] = fields
+
+        client.write_points([metrics])
+        print(metrics)
     except RuntimeError as error:
         print(error.args[0])
-
-    client.write_points(data, database=serverDatabase, protocol='line')
-    print(data)
 
     time.sleep(10.0)

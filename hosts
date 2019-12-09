@@ -1,5 +1,5 @@
-192.168.1.150 hostname=pizero1
-192.168.1.151 hostname=pizero2
+192.168.1.150 hostname=pizero1 location="Bedroom"
+192.168.1.151 hostname=pizero2 location="Living room"
 
 [runs_temperature]
 192.168.1.150

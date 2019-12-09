@@ -11,28 +11,41 @@ from influxdb import InfluxDBClient
 
 dhtDevice = adafruit_dht.DHT11(board.D2)
 
-serverIp = os.environ.get('INFLUX_SERVER_IP')
-serverPort = os.environ.get('INFLUX_SERVER_PORT', 8086)
-serverDatabase = os.environ.get('INFLUX_SERVER_DATABASE', 'external')
+location = os.environ.get('LOCATION')
+print("Env: location ", location)
 
-client = InfluxDBClient(host=serverIp, port=8086)
+serverIp = os.environ.get('INFLUX_SERVER_IP')
+print("Env: serverIp ", serverIp)
+serverPort = os.environ.get('INFLUX_SERVER_PORT', 8086)
+print("Env: serverPort ", serverPort)
+serverDatabase = os.environ.get('INFLUX_SERVER_DATABASE', 'external')
+print("Env: serverDatabase ", serverDatabase)
+
+client = InfluxDBClient(host=serverIp, port=serverPort,
+                        database=serverDatabase)
 
 hostname = socket.gethostname()
 
 systemd.daemon.notify('READY=1')
 
 while True:
-    data = []
+    metrics = {}
     try:
-        data.append("{measurement},hostname={hostname} temperature={temp},humidity={humidity}".format(
-            measurement="pitemp",
-            hostname=hostname,
-            temp=dhtDevice.temperature,
-            humidity=dhtDevice.humidity))
+        metrics['measurement'] = "pitemp"
+
+        tags = {}
+        tags['hostname'] = hostname
+        tags['location'] = location
+        metrics['tags'] = tags
+
+        fields = {}
+        fields['temperature'] = dhtDevice.temperature
+        fields['humidity'] = dhtDevice.humidity
+        metrics['fields'] = fields
+
+        client.write_points([metrics])
+        print(metrics)
     except RuntimeError as error:
         print(error.args[0])
-
-    client.write_points(data, database=serverDatabase, protocol='line')
-    print(data)
 
     time.sleep(10.0)
