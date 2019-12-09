@@ -1,0 +1,95 @@
+---
+- hosts: all
+  vars:
+    - pi_password: "raspberry"
+  gather_facts: no
+  remote_user: pi
+  become: true
+
+  tasks:
+    - name: Add pi user to the sudoers
+      copy:
+        dest: "/etc/sudoers.d/pi"
+        content: "pi ALL=(ALL) NOPASSWD: ALL"
+        mode: 0440
+
+    - name: Add SSH Key
+      get_url:
+        url: https://github.com/dan1elhughes.keys
+        dest: /home/pi/.ssh/authorized_keys
+        mode: 0644
+
+    - name: Disable password-only SSH
+      notify:
+        - restart ssh
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "^PasswordAuthentication"
+        line: "PasswordAuthentication no"
+        state: present
+        backup: yes
+
+    - name: Disable root SSH
+      notify:
+        - restart ssh
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: "^PermitRootLogin"
+        line: "PermitRootLogin no"
+        state: present
+
+    - name: Set hostname in hosts file
+      notify:
+        - reboot
+      lineinfile:
+        dest: /etc/hosts
+        regexp: "^127.0.1.1"
+        line: "127.0.1.1 {{ hostname }}"
+        state: present
+
+    - name: Set hostname in hostname file
+      notify:
+        - reboot
+      copy:
+        dest: "/etc/hostname"
+        content: "{{ hostname }}\n"
+
+    - name: Check if lingerfile exists
+      register: linger_result
+      stat:
+        path: /var/lib/systemd/linger/pi
+
+    - name: Enable user lingering
+      command: "loginctl enable-linger pi"
+      when: linger_result.stat.exists == False
+      notify:
+        - reboot
+
+    - name: Install apt python dependencies
+      apt:
+        update_cache: yes
+        name:
+          - "python3-pip"
+          - "python3-setuptools"
+          - "python3-systemd"
+          - "gpiod"
+
+    - name: Disable power LED
+      notify:
+        - reboot
+      blockinfile:
+        path: /boot/config.txt
+        block: |
+          # Disable power LED.
+          # dtparam=act_led_trigger=none
+          # dtparam=act_led_activelow=on
+
+  handlers:
+    - name: restart ssh
+      service:
+        name: sshd
+        state: restarted
+
+    - name: reboot
+      become: yes
+      reboot:

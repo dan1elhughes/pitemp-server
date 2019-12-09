@@ -13,9 +13,11 @@
         state: directory
 
     - name: Copy app
+      notify:
+        - restart app
       copy:
-        dest: "/home/pi/apps/{{ app }}/main.py"
-        src: "./main.py"
+        src: "./src/"
+        dest: "/home/pi/apps/{{ app }}/"
 
     - name: Create systemd unit directory
       file:
@@ -27,9 +29,14 @@
         src: "../templates/systemd.service"
         dest: "/home/pi/.config/systemd/user/{{ app }}.service"
 
+    - name: Install dependencies
+      pip:
+        requirements: "/home/pi/apps/{{ app }}/requirements.txt"
+
     - name: Run service
       systemd:
         state: started
+        daemon_reload: yes
         scope: user
         name: "{{ app }}"
 
@@ -39,15 +46,9 @@
         scope: user
         name: "{{ app }}"
 
-    - name: Enable systemd user lingering
-      become: yes
-      notify:
-        - reboot
-      copy:
-        content: ""
-        dest: "/var/lib/systemd/linger/pi"
-
   handlers:
-    - name: reboot
-      become: yes
-      reboot:
+    - name: restart app
+      systemd:
+        state: restarted
+        scope: user
+        name: "{{ app }}"
