@@ -1,7 +1,15 @@
 192.168.1.150 hostname=pizero1 location="Bedroom"
 192.168.1.151 hostname=pizero2 location="Living room"
 
+[requires_python]
+192.168.1.150
+192.168.1.151
+
 [runs_temperature]
+192.168.1.150
+192.168.1.151
+
+[runs_system]
 192.168.1.150
 192.168.1.151
 

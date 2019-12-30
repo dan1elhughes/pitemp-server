@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: runs_temperature
   gather_facts: no
   remote_user: pi
   vars:
