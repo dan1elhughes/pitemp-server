@@ -16,17 +16,17 @@ import tornado.ioloop
 from webthing import (SingleThing, Property, Thing, Value,
                       WebThingServer)
 
-device = adafruit_dht.DHT11(board.D2)
+device = adafruit_dht.DHT22(board.D2)
 
 
-class DHT11Sensor(Thing):
+class ClimateSensor(Thing):
     def __init__(self):
         Thing.__init__(
             self,
-            f'urn:dev:ops:dht11-sensor-{socket.gethostname()}',
-            f'{socket.gethostname()} DHT11 sensor',
+            f'urn:dev:ops:climate-sensor-{socket.gethostname()}',
+            f'{socket.gethostname()} climate sensor',
             ['MultiLevelSensor'],
-            'Humidity and temperature sensor'
+            'Climate'
         )
 
         self.location = Value(os.environ.get('LOCATION'))
@@ -74,7 +74,7 @@ class DHT11Sensor(Thing):
         logging.debug('starting the sensor update looping task')
         self.timer = tornado.ioloop.PeriodicCallback(
             self.update_sensors,
-            10000
+            5000
         )
         self.timer.start()
 
@@ -106,7 +106,7 @@ class DHT11Sensor(Thing):
 
 
 def run_server():
-    sensor = DHT11Sensor()
+    sensor = ClimateSensor()
 
     server = WebThingServer(SingleThing(sensor),
                             port=8888)
