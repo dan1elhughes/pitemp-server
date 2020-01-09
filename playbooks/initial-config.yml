@@ -65,15 +65,14 @@
       notify:
         - reboot
 
-    - name: Configure weekly reboot
+    - name: Configure daily reboot
       cron:
-        name: "weekly reboot"
-        weekday: "7"
+        name: "regular_reboot"
+        cron_file: "regular_reboot"
         minute: "0"
-        hour: "4"
+        hour: "2"
         user: root
         job: "/sbin/reboot >/dev/null 2>&1"
-        cron_file: weekly_reboot
 
     - name: Disable power LED
       notify:
