@@ -16,4 +16,4 @@
 [all:vars]
 # Debian comes with python3 by default.
 ansible_python_interpreter=/usr/bin/python3
-ansible_ssh_user=pi
+ansible_user=pi
