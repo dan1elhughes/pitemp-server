@@ -83,14 +83,14 @@ class ClimateSensor(Thing):
             new_temperature = self.read_temp_from_gpio()
             logging.debug('setting new temperature: %s', new_temperature)
             self.temperature.notify_of_external_update(new_temperature)
-        except RuntimeError as error:
+        except (RuntimeError, ValueError) as error:
             logging.warning('failed to get new temperature: %s', error.args[0])
 
         try:
             new_humidity = self.read_humidity_from_gpio()
             logging.debug('setting new humidity: %s', new_humidity)
             self.humidity.notify_of_external_update(new_humidity)
-        except RuntimeError as error:
+        except (RuntimeError, ValueError) as error:
             logging.warning('failed to get new humidity: %s', error.args[0])
 
     def cancel_update_level_task(self):
@@ -98,11 +98,17 @@ class ClimateSensor(Thing):
 
     @staticmethod
     def read_temp_from_gpio():
-        return device.temperature
+        value = device.temperature
+        if value is not None:
+            return value
+        raise ValueError('read a zero value')
 
     @staticmethod
     def read_humidity_from_gpio():
-        return device.humidity
+        value = device.humidity
+        if value is not None:
+            return value
+        raise ValueError('read a zero value')
 
 
 def run_server():
