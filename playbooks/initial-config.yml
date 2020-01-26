@@ -74,6 +74,11 @@
         user: root
         job: "/sbin/reboot >/dev/null 2>&1"
 
+    - name: Disable MOTD
+      file:
+        path: /etc/motd
+        state: absent
+
     - name: Disable power LED
       notify:
         - reboot
@@ -83,6 +88,14 @@
           # Disable power LED.
           # dtparam=act_led_trigger=none
           # dtparam=act_led_activelow=on
+
+    - name: Create update script
+      template:
+        src: "../templates/update.sh"
+        dest: "/home/pi/update.sh"
+        mode: 0764
+        owner: "pi"
+        group: "pi"
 
   handlers:
     - name: restart ssh
