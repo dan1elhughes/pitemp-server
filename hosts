@@ -1,17 +1,17 @@
-192.168.1.151 hostname=pizero2 location="Living room"
-192.168.1.152 hostname=pizero1 location="Bedroom"
+pizero1.local hostname=pizero1 location="Bedroom"
+pizero2.local hostname=pizero2 location="Living room"
 
 [requires_python]
-192.168.1.151
-192.168.1.152
+pizero1.local
+pizero2.local
 
 [runs_temperature]
-192.168.1.151
-192.168.1.152
+pizero1.local
+pizero2.local
 
 [runs_system]
-192.168.1.151
-192.168.1.152
+pizero1.local
+pizero2.local
 
 [all:vars]
 # Debian comes with python3 by default.
