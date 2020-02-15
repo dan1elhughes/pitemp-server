@@ -97,6 +97,11 @@
         owner: "pi"
         group: "pi"
 
+    - name: Configure apt mirror
+      template:
+        src: "../templates/sources.list"
+        dest: "/etc/apt/sources.list"
+
   handlers:
     - name: restart ssh
       service:
