@@ -1,10 +1,10 @@
 ---
-- hosts: runs_system
+- hosts: runs_system_app
   gather_facts: no
   remote_user: pi
   vars:
     server_ip: "192.168.1.128"
-    app: "system"
+    app: "ambient_temperature"
 
   tasks:
     - name: Create app directory
@@ -19,6 +19,20 @@
         src: "./src/"
         dest: "/home/pi/apps/{{ app }}/"
 
+    - name: Install apt python dependencies
+      become: yes
+      apt:
+        update_cache: yes
+        name:
+          # - "python3-pip"
+          # - "python3-setuptools"
+          # - "python3-systemd"
+          # - "gpiod"
+
+    - name: Install python dependencies
+      pip:
+        requirements: "/home/pi/apps/{{ app }}/requirements.txt"
+
     - name: Create systemd unit directory
       file:
         path: "/home/pi/.config/systemd/user"
@@ -28,10 +42,6 @@
       template:
         src: "../templates/systemd.service"
         dest: "/home/pi/.config/systemd/user/{{ app }}.service"
-
-    - name: Install dependencies
-      pip:
-        requirements: "/home/pi/apps/{{ app }}/requirements.txt"
 
     - name: Run service
       systemd:

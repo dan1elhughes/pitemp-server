@@ -14,37 +14,45 @@ print("Env: serverPort ", serverPort)
 serverDatabase = os.environ.get('INFLUX_SERVER_DATABASE', 'external')
 print("Env: serverDatabase ", serverDatabase)
 
+hostname = socket.gethostname()
 client = InfluxDBClient(host=serverIp, port=serverPort,
                         database=serverDatabase)
-
-hostname = socket.gethostname()
-
-systemd.daemon.notify('READY=1')
 
 
 def seconds_since_boot():
     return time.time() - psutil.boot_time()
 
 
+# Notify systemd that we're done loading.
+systemd.daemon.notify('READY=1')
+
 while True:
-    metrics = {}
     try:
+        metrics = {}
         metrics['measurement'] = "system"
 
         tags = {}
         tags['hostname'] = hostname
-        metrics['tags'] = tags
 
-        memStats = psutil.virtual_memory()
         fields = {}
         fields['temp'] = psutil.sensors_temperatures()[
-            'cpu-thermal'][0].current
+            'cpu_thermal'][0].current
         fields['cpu'] = psutil.cpu_percent()
+        fields['uptime'] = seconds_since_boot()
+
+        memStats = psutil.virtual_memory()
         fields['mem_available'] = memStats.available
         fields['mem_total'] = memStats.total
         fields['mem_used'] = memStats.used
         fields['mem_percent'] = memStats.percent
-        fields['uptime'] = seconds_since_boot()
+
+        diskStats = psutil.disk_usage('/')
+        fields['disk_total'] = diskStats.total
+        fields['disk_used'] = diskStats.used
+        fields['disk_free'] = diskStats.free
+        fields['disk_percent'] = diskStats.percent
+
+        metrics['tags'] = tags
         metrics['fields'] = fields
 
         client.write_points([metrics])

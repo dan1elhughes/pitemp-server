@@ -15,7 +15,7 @@
 
     - name: Add SSH Key
       get_url:
-        url: https://github.com/dan1elhughes.keys
+        url: https://danhughes.dev/keys
         dest: /home/pi/.ssh/authorized_keys
         mode: 0644
 
@@ -65,7 +65,7 @@
       notify:
         - reboot
 
-    - name: Configure daily reboot
+    - name: Configure daily reboot at 2am
       cron:
         name: "regular_reboot"
         cron_file: "regular_reboot"
@@ -79,15 +79,16 @@
         path: /etc/motd
         state: absent
 
-    - name: Disable power LED
-      notify:
-        - reboot
-      blockinfile:
-        path: /boot/config.txt
-        block: |
-          # Disable power LED.
-          # dtparam=act_led_trigger=none
-          # dtparam=act_led_activelow=on
+    # Todo: Not sure if I want this. Make it a per-host setting.
+    # - name: Disable power LED
+    #   notify:
+    #     - reboot
+    #   blockinfile:
+    #     path: /boot/config.txt
+    #     block: |
+    #       # Disable power LED.
+    #       # dtparam=act_led_trigger=none
+    #       # dtparam=act_led_activelow=on
 
     - name: Create update script
       template:
@@ -96,11 +97,6 @@
         mode: 0764
         owner: "pi"
         group: "pi"
-
-    - name: Configure apt mirror
-      template:
-        src: "../templates/sources.list"
-        dest: "/etc/apt/sources.list"
 
   handlers:
     - name: restart ssh
