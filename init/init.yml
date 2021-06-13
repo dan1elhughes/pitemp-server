@@ -63,10 +63,11 @@
       notify:
         - reboot
 
-    - name: Configure daily reboot at 2am
+    - name: Configure weekly reboot on Sunday at 2am
       cron:
         name: "regular_reboot"
         cron_file: "regular_reboot"
+        weekday: "0"
         minute: "0"
         hour: "2"
         user: root
