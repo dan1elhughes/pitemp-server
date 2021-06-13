@@ -1,7 +1,5 @@
 ---
 - hosts: all
-  vars:
-    - pi_password: "raspberry"
   gather_facts: no
   remote_user: pi
   become: true
@@ -105,5 +103,4 @@
         state: restarted
 
     - name: reboot
-      become: yes
       reboot:
